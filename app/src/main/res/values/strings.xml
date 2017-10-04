@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">uRent</string>
+    <string name="signed_in_fmt">Signed in as </string>
+</resources>
