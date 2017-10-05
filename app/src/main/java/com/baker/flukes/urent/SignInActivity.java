@@ -23,7 +23,7 @@ import com.google.android.gms.common.api.ResultCallback;
 
 public class SignInActivity extends AppCompatActivity implements GoogleApiClient.OnConnectionFailedListener {
 
-    private static final String TAG = "SignInFragment";
+    private static final String TAG = "SignInActivity";
     private static final int RC_SIGN_IN = 0;
 
     private GoogleApiClient mGoogleApiClient;
@@ -31,6 +31,7 @@ public class SignInActivity extends AppCompatActivity implements GoogleApiClient
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        Log.d(TAG, "onCreate(Bundle) called");
         setContentView(R.layout.activity_sign_in);
 
         // Configure sign-in to request the user's ID, email address, and basic
@@ -108,5 +109,34 @@ public class SignInActivity extends AppCompatActivity implements GoogleApiClient
     @Override
     public void onConnectionFailed(ConnectionResult connectionResult) {
         // Do nothing for now, user should not be able to do anything
+    }
+    @Override
+    public void onStart() {
+        super.onStart();
+        Log.d(TAG, "onStart() called");
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        Log.d(TAG, "onResume() called");
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        Log.d(TAG, "onPause() called");
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+        Log.d(TAG, "onStop() called");
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        Log.d(TAG, "onDestroy() called");
     }
 }
