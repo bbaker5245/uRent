@@ -94,7 +94,7 @@ public class SignInActivity extends AppCompatActivity implements GoogleApiClient
             updateUI(true);
         } else {
             // Signed out, show unauthenticated UI.
-            updateUI(false);
+            updateUI(true);
         }
     }
 
@@ -110,6 +110,7 @@ public class SignInActivity extends AppCompatActivity implements GoogleApiClient
     public void onConnectionFailed(ConnectionResult connectionResult) {
         // Do nothing for now, user should not be able to do anything
     }
+
     @Override
     public void onStart() {
         super.onStart();
