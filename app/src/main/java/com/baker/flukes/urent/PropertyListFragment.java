@@ -100,7 +100,6 @@ public class PropertyListFragment extends Fragment {
     public void onCreate(Bundle savedInstanceState)
     {
         Log.d(TAG, "onCreate");
-        Log.e(TAG, "onCreate");
         super.onCreate(savedInstanceState);
     }
     
@@ -109,7 +108,6 @@ public class PropertyListFragment extends Fragment {
     public void onActivityCreated(Bundle savedInstanceState)
     {
         Log.d(TAG, "onActivityCreated");
-        Log.e(TAG, "onActivityCreated");
         super.onActivityCreated(savedInstanceState);
     }
 
@@ -117,7 +115,6 @@ public class PropertyListFragment extends Fragment {
     public void onViewStateRestored(Bundle savedInstanceState)
     {
         Log.d(TAG, "onViewStateRestored");
-        Log.e(TAG, "onViewStateRestored");
         super.onViewStateRestored(savedInstanceState);
     }
 
@@ -125,7 +122,6 @@ public class PropertyListFragment extends Fragment {
     public void onStart()
     {
         Log.d(TAG, "onStart");
-        Log.e(TAG, "onStart");
         super.onStart();
     }
 
@@ -133,7 +129,6 @@ public class PropertyListFragment extends Fragment {
     public void onResume()
     {
         Log.d(TAG, "onResume");
-        Log.e(TAG, "onResume");
         super.onResume();
     }
 
@@ -141,7 +136,6 @@ public class PropertyListFragment extends Fragment {
     public void onPause()
     {
         Log.d(TAG, "onPause");
-        Log.e(TAG, "onPause");
         super.onPause();
     }
 
@@ -149,7 +143,6 @@ public class PropertyListFragment extends Fragment {
     public void onStop()
     {
         Log.d(TAG, "onStop");
-        Log.e(TAG, "onStop");
         super.onStop();
     }
 
@@ -157,7 +150,6 @@ public class PropertyListFragment extends Fragment {
     public void onDestroyView()
     {
         Log.d(TAG, "onDestroyView");
-        Log.e(TAG, "onDestroyView");
         super.onDestroyView();
     }
 
@@ -165,7 +157,6 @@ public class PropertyListFragment extends Fragment {
     public void onDestroy()
     {
         Log.d(TAG, "onDestroy");
-        Log.e(TAG, "onDestroy");
         super.onDestroy();
     }
 
@@ -173,7 +164,6 @@ public class PropertyListFragment extends Fragment {
     public void onDetach()
     {
         Log.d(TAG, "onDetach");
-        Log.e(TAG, "onDetach");
         super.onDetach();
     }
 }

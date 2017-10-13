@@ -91,15 +91,17 @@ public class SignInActivity extends AppCompatActivity implements GoogleApiClient
         if (result.isSuccess()) {
             // Signed in successfully, show authenticated UI.
             GoogleSignInAccount acct = result.getSignInAccount();
+            Log.d(TAG, "Signed in as " +acct.getEmail());
             updateUI(true);
         } else {
             // Signed out, show unauthenticated UI.
-            updateUI(true);
+            updateUI(false);
         }
     }
 
     private void updateUI(boolean successfulSignIn) {
         if(successfulSignIn){
+
             // Proceed to app
             Intent intent = new Intent(this, PropertyListActivity.class);
             startActivity(intent);
