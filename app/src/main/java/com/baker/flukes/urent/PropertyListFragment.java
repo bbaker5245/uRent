@@ -1,6 +1,7 @@
 package com.baker.flukes.urent;
 
 import android.app.Activity;
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.LinearLayoutManager;
@@ -8,6 +9,7 @@ import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.util.Log;
@@ -22,6 +24,7 @@ public class PropertyListFragment extends Fragment {
 
     private RecyclerView mPropertyRecyclerView;
     private PropertyAdapter mAdapter;
+    private Button mMapButton;
     private static final String TAG = "PropertyListFragment";
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -30,6 +33,15 @@ public class PropertyListFragment extends Fragment {
 
         mPropertyRecyclerView = (RecyclerView) view.findViewById(R.id.property_recycler_view);
         mPropertyRecyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
+
+        mMapButton = (Button) container.findViewById(R.id.map_button);
+        mMapButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(getActivity(), MapsActivity.class);
+                startActivity(intent);
+            }
+        });
 
         updateUI();
 
