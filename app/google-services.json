@@ -1,33 +1,39 @@
 {
   "project_info": {
-    "project_number": "230086094024",
-    "project_id": "urent-d5d52"
+    "project_number": "809563623250",
+    "firebase_url": "https://fir-urent.firebaseio.com",
+    "project_id": "firebase-urent",
+    "storage_bucket": "firebase-urent.appspot.com"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:230086094024:android:2ade0c6a0ed1e251",
+        "mobilesdk_app_id": "1:809563623250:android:2ade0c6a0ed1e251",
         "android_client_info": {
           "package_name": "com.baker.flukes.urent"
         }
       },
       "oauth_client": [
         {
-          "client_id": "230086094024-f6p7oc2s4ll90vtpt9cnmj2g11lnu5a0.apps.googleusercontent.com",
+          "client_id": "809563623250-381njsa4vncd8g4oj05257d5o1ulsbra.apps.googleusercontent.com",
           "client_type": 3
         },
         {
-          "client_id": "230086094024-aj0ong25tvqfjiri65tc0268dlbnal6e.apps.googleusercontent.com",
+          "client_id": "809563623250-72qda46rd6gt4hgkg26hb0g63fbbv5n6.apps.googleusercontent.com",
+          "client_type": 3
+        },
+        {
+          "client_id": "809563623250-5pkf3fs0qou84jler1b9rvbua75a5ifs.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
             "package_name": "com.baker.flukes.urent",
-            "certificate_hash": "64e3e62b10704184186c77b1a46e50388b87f920"
+            "certificate_hash": "6c762ff9d9058af709718f3902ced614330b6c27"
           }
         }
       ],
       "api_key": [
         {
-          "current_key": "AIzaSyCzznxfzlE4cPVqvDRivD8C6Y3QJecHvew"
+          "current_key": "AIzaSyAyGXxtp8pkg2yHo7jv0QZFyk_EZ0xdn18"
         }
       ],
       "services": {
@@ -35,11 +41,16 @@
           "status": 1
         },
         "appinvite_service": {
-          "status": 1,
-          "other_platform_oauth_client": []
+          "status": 2,
+          "other_platform_oauth_client": [
+            {
+              "client_id": "809563623250-381njsa4vncd8g4oj05257d5o1ulsbra.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
         },
         "ads_service": {
-          "status": 1
+          "status": 2
         }
       }
     }
