@@ -1,20 +1,15 @@
 package com.baker.flukes.urent;
 
-import android.app.Activity;
-import android.content.Intent;
 import android.os.Bundle;
-import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
-import android.support.v4.widget.SwipeRefreshLayout;
-import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
-import android.widget.TextView;
+import android.widget.EditText;
 import android.widget.Toast;
-import android.util.Log;
+import android.widget.ToggleButton;
 
 import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
@@ -29,51 +24,44 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Created by Brian on 10/4/2017.
+ * Created by rflukes on 10/30/17.
  */
 
-public class PropertyListFragment extends Fragment {
-
+public class AddPropertyFragment extends Fragment{
+    private static final String TAG = "AddPropertyFragment";
     private DatabaseReference mDatabase;
+    private Button mSubmitButton;
+    private EditText mAddress;
+    private EditText mBedrooms;
+    private EditText mBathrooms;
+    private EditText mRent;
+    private ToggleButton mUtilitiesIncluded;
+    private ToggleButton mPetsAllowed;
     private List<Property> mProperties;
-
-    private RecyclerView mPropertyRecyclerView;
-    private SwipeRefreshLayout mSwipeContainer;
-    private PropertyAdapter mAdapter;
-    private Button mMapButton;
-    private FloatingActionButton mAddPropertyButton;
-    private static final String TAG = "PropertyListFragment";
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         Log.d(TAG, "onCreateView() called");
-        View view = inflater.inflate(R.layout.fragment_property_list, container, false);
+        View view = inflater.inflate(R.layout.fragment_add_property, container, false);
 
-        mSwipeContainer = (SwipeRefreshLayout) view.findViewById(R.id.swipeContainer);
-        mSwipeContainer.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
-            @Override
-            public void onRefresh() {
-                Log.d(TAG, "onRefresh called");
-                // Your code to refresh the list here.
-                // Make sure you call swipeContainer.setRefreshing(false)
-                // once the network request has completed successfully.
-                updateUI();
-            }
-        });
-        mSwipeContainer.setColorSchemeResources(android.R.color.holo_blue_bright,
-                android.R.color.holo_green_light,
-                android.R.color.holo_orange_light,
-                android.R.color.holo_red_light);
+        mAddress = (EditText) view.findViewById(R.id.address_input);
+        mBedrooms = (EditText) view.findViewById(R.id.bedroom_input);
+        mBathrooms = (EditText) view.findViewById(R.id.bathroom_input);
+        mRent = (EditText) view.findViewById(R.id.rent_input);
+        mUtilitiesIncluded = (ToggleButton) view.findViewById(R.id.utilities_input);
+        mPetsAllowed = (ToggleButton) view.findViewById(R.id.pets_input);
+        mSubmitButton = (Button) view.findViewById(R.id.submit_button);
 
-        mAddPropertyButton = (FloatingActionButton) view.findViewById(R.id.add_property_button);
-        mAddPropertyButton.setOnClickListener(new View.OnClickListener() {
+        mSubmitButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(getActivity(), AddPropertyActivity.class);
-                startActivity(intent);
-                /* Log.d(TAG, "addProperty called");
-
-                Property newProperty = new Property(getContext(), "1234 added", 200, 3, 4, true, false);
+                String address = mAddress.getText().toString();
+                int numBedrooms = Integer.parseInt(mBedrooms.getText().toString());
+                int numBathrooms = Integer.parseInt(mBathrooms.getText().toString());
+                int rent = Integer.parseInt(mRent.getText().toString());
+                boolean includesUtilities = mUtilitiesIncluded.isChecked();
+                boolean petsAllowed = mPetsAllowed.isChecked();
+                Property newProperty = new Property(getContext(), address, rent, numBedrooms, numBathrooms, petsAllowed, includesUtilities);
 
                 // Get key (id) to add new property to database
                 String key = mDatabase.push().getKey();
@@ -88,23 +76,21 @@ public class PropertyListFragment extends Fragment {
 
                 // Create a new property at: /properties/$key
                 mDatabase.updateChildren(childUpdates);
-
                 // Listen to update UI after addition is made
                 mDatabase.addListenerForSingleValueEvent(new ValueEventListener() {
                     @Override
                     public void onDataChange(DataSnapshot dataSnapshot) {
                         Log.d(TAG, "done loading initial data");
-                        updateUI();
+                        Toast.makeText(getContext(), "Property Added! Press Back button to return to Property Listings", Toast.LENGTH_SHORT).show();
                     }
 
                     @Override
                     public void onCancelled(DatabaseError databaseError) {
                         Log.d(TAG, "error loading initial data");
                     }
-                }); */
+                });
             }
         });
-
         mProperties = new ArrayList<>();
         mDatabase = FirebaseDatabase.getInstance().getReference().child("/properties");
         ChildEventListener childEventListener = new ChildEventListener() {
@@ -176,7 +162,6 @@ public class PropertyListFragment extends Fragment {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 Log.d(TAG, "done loading initial data");
-                updateUI();
             }
 
             @Override
@@ -184,104 +169,8 @@ public class PropertyListFragment extends Fragment {
                 Log.d(TAG, "error loading initial data");
             }
         });
-
-        mPropertyRecyclerView = (RecyclerView) view.findViewById(R.id.property_recycler_view);
-        mPropertyRecyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
-
-        mMapButton = (Button) view.findViewById(R.id.map_button);
-        mMapButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(getActivity(), MapsActivity.class);
-                startActivity(intent);
-            }
-        });
-        return view;
+            return view;
     }
-
-    private void updateUI() {
-        Log.d(TAG, "updateUI");
-        mAdapter = new PropertyAdapter(mProperties);
-        mPropertyRecyclerView.setAdapter(mAdapter);
-        mSwipeContainer.setRefreshing(false);
-    }
-
-    private class PropertyHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
-
-        private Property mProperty;
-        private TextView mAddressTextView;
-        private TextView mRentTextView;
-
-        public PropertyHolder(LayoutInflater inflater, ViewGroup parent){
-            super(inflater.inflate(R.layout.list_item_property, parent, false));
-            itemView.setOnClickListener(this);
-
-            mAddressTextView = (TextView) itemView.findViewById(R.id.property_address);
-            mRentTextView = (TextView) itemView.findViewById(R.id.property_rent);
-        }
-
-        public void bind(Property property){
-            mProperty = property;
-            mAddressTextView.setText(mProperty.getAddress());
-            mRentTextView.setText("$" + mProperty.getRent());
-        }
-
-        @Override
-        public void onClick(View view) {
-            Log.d(TAG, "removing property from database");
-            Toast.makeText(getActivity(), mProperty.getAddress() + " deleted from firebase", Toast.LENGTH_SHORT).show();
-
-            // Get the id of this property
-            String key = mProperty.getId();
-
-            // Delete it from the database
-            mDatabase.child("/" + key).removeValue();
-
-            // Listen to update UI after deletion is made
-            mDatabase.addListenerForSingleValueEvent(new ValueEventListener() {
-                @Override
-                public void onDataChange(DataSnapshot dataSnapshot) {
-                    Log.d(TAG, "done loading initial data");
-                    updateUI();
-                }
-
-                @Override
-                public void onCancelled(DatabaseError databaseError) {
-                    Log.d(TAG, "error loading initial data");
-                }
-            });
-
-            Log.d(TAG, mProperty.getAddress() + " clicked!");
-        }
-    }
-
-    private class PropertyAdapter extends RecyclerView.Adapter<PropertyHolder>{
-        private List<Property> mProperties;
-
-        public PropertyAdapter(List<Property> properties){
-            mProperties = properties;
-        }
-
-        @Override
-        public PropertyHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-            LayoutInflater layoutInflater = LayoutInflater.from(getActivity());
-
-            return new PropertyHolder(layoutInflater, parent);
-        }
-
-        @Override
-        public void onBindViewHolder(PropertyHolder holder, int position) {
-            Property property = mProperties.get(position);
-            holder.bind(property);
-        }
-
-        @Override
-        public int getItemCount() {
-            return mProperties.size();
-        }
-    }
-
-
     @Override
     public void onCreate(Bundle savedInstanceState)
     {

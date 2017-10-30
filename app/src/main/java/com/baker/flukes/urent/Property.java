@@ -1,8 +1,15 @@
 package com.baker.flukes.urent;
 
+import android.content.Context;
+import android.location.Address;
+import android.location.Geocoder;
+
 import com.google.firebase.database.Exclude;
 
+import java.io.IOException;
 import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -21,19 +28,20 @@ public class Property {
     private int mBathrooms;
     private boolean mPetsAllowed;
     private boolean mUtilitiesIncluded;
-
+    private Context mContext;
     public Property() {
     }
-    public Property(String address, int rent, int bedrooms, int bathrooms) {
+    public Property(Context context, String address, int rent, int bedrooms, int bathrooms) {
         this();
+        mContext = context;
         mAddress = address;
         setCoordinates(address);
         mRent = rent;
         mBedrooms = bedrooms;
         mBathrooms = bathrooms;
     }
-    public Property(String address, int rent, int bedrooms, int bathrooms, boolean petsAllowed, boolean utilitiesIncluded ){
-        this(address, rent, bedrooms, bathrooms);
+    public Property( Context context, String address, int rent, int bedrooms, int bathrooms, boolean petsAllowed, boolean utilitiesIncluded ){
+        this(context, address, rent, bedrooms, bathrooms);
         mPetsAllowed = petsAllowed;
         mUtilitiesIncluded = utilitiesIncluded;
     }
@@ -78,10 +86,9 @@ public class Property {
         return mLongitude;
     }
 
+
     private void setCoordinates(String address) {
-        //set mLatitude and mLongitude here
-        mLatitude = 1.0;
-        mLongitude = 2.0;
+
     }
 
     public int getRent() {
