@@ -20,6 +20,7 @@ import java.util.UUID;
 public class Property {
 
     private String mId;
+    private String mOwnerId;
     private String mAddress;
     private double mLatitude;
     private double mLongitude;
@@ -29,26 +30,27 @@ public class Property {
     private boolean mPetsAllowed;
     private boolean mUtilitiesIncluded;
     private Context mContext;
+
     public Property() {
     }
-    public Property(Context context, String address, int rent, int bedrooms, int bathrooms) {
-        this();
+
+    public Property( Context context, String ownerId, String address, int rent, int bedrooms, int bathrooms, boolean petsAllowed, boolean utilitiesIncluded ){
         mContext = context;
+        mOwnerId = ownerId;
         mAddress = address;
-        setCoordinates(address);
         mRent = rent;
         mBedrooms = bedrooms;
         mBathrooms = bathrooms;
-    }
-    public Property( Context context, String address, int rent, int bedrooms, int bathrooms, boolean petsAllowed, boolean utilitiesIncluded ){
-        this(context, address, rent, bedrooms, bathrooms);
         mPetsAllowed = petsAllowed;
         mUtilitiesIncluded = utilitiesIncluded;
+
+        setCoordinates(address);
     }
 
     @Exclude
     public Map<String, Object> toMap() {
         HashMap<String, Object> result = new HashMap<>();
+        result.put("ownerId", mOwnerId);
         result.put("address", mAddress);
         result.put("latitude", mLatitude);
         result.put("longitude", mLongitude);
@@ -67,6 +69,14 @@ public class Property {
 
     public void setId(String id) {
         mId = id;
+    }
+
+    public String getOwnerId() {
+        return mOwnerId;
+    }
+
+    public void setOwnerId(String ownerId) {
+        mOwnerId = ownerId;
     }
 
     public String getAddress() {

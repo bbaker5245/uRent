@@ -20,13 +20,10 @@ import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 /**
  * Created by Brian on 10/4/2017.
@@ -34,15 +31,16 @@ import java.util.Map;
 
 public class PropertyListFragment extends Fragment {
 
+    private static final String TAG = "PropertyListFragment";
+
     private DatabaseReference mDatabase;
     private List<Property> mProperties;
 
     private RecyclerView mPropertyRecyclerView;
     private SwipeRefreshLayout mSwipeContainer;
     private PropertyAdapter mAdapter;
-    private Button mMapButton;
+    private FloatingActionButton mMapButton;
     private FloatingActionButton mAddPropertyButton;
-    private static final String TAG = "PropertyListFragment";
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -69,44 +67,13 @@ public class PropertyListFragment extends Fragment {
         mAddPropertyButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(getActivity(), AddPropertyActivity.class);
+                Intent intent = PropertyActivity.newIntent(getActivity(), null);
                 startActivity(intent);
-                /* Log.d(TAG, "addProperty called");
-
-                Property newProperty = new Property(getContext(), "1234 added", 200, 3, 4, true, false);
-
-                // Get key (id) to add new property to database
-                String key = mDatabase.push().getKey();
-
-                // Update property with this id
-                newProperty.setId(key);
-
-                // Create update data
-                Map<String, Object> propertyValues = newProperty.toMap();
-                Map<String, Object> childUpdates = new HashMap<>();
-                childUpdates.put("/" + key, propertyValues);
-
-                // Create a new property at: /properties/$key
-                mDatabase.updateChildren(childUpdates);
-
-                // Listen to update UI after addition is made
-                mDatabase.addListenerForSingleValueEvent(new ValueEventListener() {
-                    @Override
-                    public void onDataChange(DataSnapshot dataSnapshot) {
-                        Log.d(TAG, "done loading initial data");
-                        updateUI();
-                    }
-
-                    @Override
-                    public void onCancelled(DatabaseError databaseError) {
-                        Log.d(TAG, "error loading initial data");
-                    }
-                }); */
             }
         });
 
         mProperties = new ArrayList<>();
-        mDatabase = FirebaseDatabase.getInstance().getReference().child("/properties");
+        mDatabase = DatabaseManager.getInstance().GetPropertyListReference();
         ChildEventListener childEventListener = new ChildEventListener() {
             @Override
             public void onChildAdded(DataSnapshot dataSnapshot, String s) {
@@ -126,11 +93,11 @@ public class PropertyListFragment extends Fragment {
                 // property and if so displayed the changed property.
                 Property newProperty = dataSnapshot.getValue(Property.class);
                 String propertyKey = dataSnapshot.getKey();
+                newProperty.setId(propertyKey);
 
-                for(Property property : mProperties){
-                    if(property.getId().equals(propertyKey)){
-                        property = newProperty;
-                        property.setId(propertyKey);
+                for(int i = 0; i < mProperties.size(); i++){
+                    if(mProperties.get(i).getId().equals(propertyKey)){
+                        mProperties.set(i, newProperty);
                         break;
                     }
                 }
@@ -188,7 +155,7 @@ public class PropertyListFragment extends Fragment {
         mPropertyRecyclerView = (RecyclerView) view.findViewById(R.id.property_recycler_view);
         mPropertyRecyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
 
-        mMapButton = (Button) view.findViewById(R.id.map_button);
+        mMapButton = (FloatingActionButton) view.findViewById(R.id.map_button);
         mMapButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -228,29 +195,8 @@ public class PropertyListFragment extends Fragment {
 
         @Override
         public void onClick(View view) {
-            Log.d(TAG, "removing property from database");
-            Toast.makeText(getActivity(), mProperty.getAddress() + " deleted from firebase", Toast.LENGTH_SHORT).show();
-
-            // Get the id of this property
-            String key = mProperty.getId();
-
-            // Delete it from the database
-            mDatabase.child("/" + key).removeValue();
-
-            // Listen to update UI after deletion is made
-            mDatabase.addListenerForSingleValueEvent(new ValueEventListener() {
-                @Override
-                public void onDataChange(DataSnapshot dataSnapshot) {
-                    Log.d(TAG, "done loading initial data");
-                    updateUI();
-                }
-
-                @Override
-                public void onCancelled(DatabaseError databaseError) {
-                    Log.d(TAG, "error loading initial data");
-                }
-            });
-
+            Intent intent = PropertyActivity.newIntent(getActivity(), mProperty.getId());
+            startActivity(intent);
             Log.d(TAG, mProperty.getAddress() + " clicked!");
         }
     }
@@ -315,6 +261,7 @@ public class PropertyListFragment extends Fragment {
     {
         Log.d(TAG, "onResume");
         super.onResume();
+        updateUI();
     }
 
     @Override
