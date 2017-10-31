@@ -134,7 +134,7 @@ public class SignInActivity extends AppCompatActivity implements GoogleApiClient
     private void updateUI(FirebaseUser currentUser){
         if(currentUser != null){
             // Proceed to app
-            Intent intent = new Intent(this, PropertyListActivity.class);
+            Intent intent = new Intent(this, UniversityListActivity.class);
             startActivity(intent);
         }
     }

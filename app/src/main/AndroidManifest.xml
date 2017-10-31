@@ -28,6 +28,7 @@
             </intent-filter>
         </activity>
         <activity android:name=".PropertyListActivity" />
+        <activity android:name=".UniversityListActivity" />
         <activity android:name=".PropertyActivity" />
         <!--
              The API key for Google Maps-based APIs is defined as a string resource.

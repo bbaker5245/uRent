@@ -78,4 +78,33 @@ public class DatabaseManager {
         Log.d(TAG, "GetPropertyListReference");
         return FirebaseDatabase.getInstance().getReference().child("/properties");
     }
+
+    public void AddUniversity(University university){
+        Log.d(TAG, "AddUniversity");
+
+        DatabaseReference databaseProperties = mDatabase.child("/universities");
+
+        // Get id and serialize property
+        String key;
+        if(university.getId() != null){
+            key = university.getId();
+            Log.d(TAG, "existing id: " + key);
+        }else{
+            key = databaseProperties.push().getKey();
+            university.setId(key);
+            Log.d(TAG, "new id: " + key);
+        }
+
+
+        // Create update for /universities/$id child
+        Map<String, Object> propertyValues = university.toMap();
+        Map<String, Object> propertiesUpdates = new HashMap<>();
+        propertiesUpdates.put("/" + key, propertyValues);
+        databaseProperties.updateChildren(propertiesUpdates);
+    }
+
+    public DatabaseReference GetUniversityListReference(){
+        Log.d(TAG, "GetUniversityListReference");
+        return FirebaseDatabase.getInstance().getReference().child("/universities");
+    }
 }

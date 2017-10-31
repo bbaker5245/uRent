@@ -1,6 +1,8 @@
 package com.baker.flukes.urent;
 
 import android.app.Activity;
+import android.app.SearchManager;
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
@@ -9,6 +11,8 @@ import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
@@ -32,6 +36,7 @@ import java.util.List;
 public class PropertyListFragment extends Fragment {
 
     private static final String TAG = "PropertyListFragment";
+    private static final String ARG_UNIVERSITY_ID = "university_id";
 
     private DatabaseReference mDatabase;
     private List<Property> mProperties;
@@ -41,6 +46,14 @@ public class PropertyListFragment extends Fragment {
     private PropertyAdapter mAdapter;
     private FloatingActionButton mMapButton;
     private FloatingActionButton mAddPropertyButton;
+
+    public static PropertyListFragment newInstance(String universityId){
+        Bundle args = new Bundle();
+        args.putSerializable(ARG_UNIVERSITY_ID, universityId);
+        PropertyListFragment fragment = new PropertyListFragment();
+        fragment.setArguments(args);
+        return fragment;
+    }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -226,7 +239,6 @@ public class PropertyListFragment extends Fragment {
             return mProperties.size();
         }
     }
-
 
     @Override
     public void onCreate(Bundle savedInstanceState)

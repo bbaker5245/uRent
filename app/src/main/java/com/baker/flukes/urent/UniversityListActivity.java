@@ -1,29 +1,25 @@
 package com.baker.flukes.urent;
 
-import android.content.Context;
-import android.content.Intent;
 import android.support.v4.app.Fragment;
 import android.util.Log;
+import android.view.Menu;
 
 /**
  * Created by Brian on 10/4/2017.
  */
 
-public class PropertyListActivity extends SingleFragmentActivity {
+public class UniversityListActivity extends SingleFragmentActivity {
 
-    private static final String TAG = "PropertyListActivity";
-    public static final String EXTRA_UNIVERSITY_ID = "com.baker.flukes.urent.university_id";
+    private static final String TAG = "UniversityListActivity";
 
-    public static Intent newIntent(Context packageContext, String universityId){
-        Intent intent = new Intent(packageContext, PropertyListActivity.class);
-        intent.putExtra(EXTRA_UNIVERSITY_ID, universityId);
-        return intent;
+    @Override
+    protected Fragment createFragment() {
+        return new UniversityListFragment();
     }
 
     @Override
-    protected Fragment createFragment(){
-        String propertyId = (String) getIntent().getSerializableExtra(EXTRA_UNIVERSITY_ID);
-        return PropertyListFragment.newInstance(propertyId);
+    public boolean onCreateOptionsMenu(Menu menu) {
+        return true;
     }
 
     @Override
