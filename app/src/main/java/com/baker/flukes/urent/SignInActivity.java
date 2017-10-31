@@ -1,8 +1,10 @@
 package com.baker.flukes.urent;
 
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
@@ -16,6 +18,7 @@ import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.OptionalPendingResult;
 import com.google.android.gms.common.api.ResultCallback;
+import com.google.android.gms.common.api.Status;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthCredential;
@@ -28,19 +31,31 @@ import com.google.firebase.auth.GoogleAuthProvider;
  * Created by Brian on 10/4/2017.
  */
 
-public class SignInActivity extends AppCompatActivity implements GoogleApiClient.OnConnectionFailedListener {
+public class SignInActivity extends AppCompatActivity implements GoogleApiClient.OnConnectionFailedListener, GoogleApiClient.ConnectionCallbacks {
 
     private static final String TAG = "SignInActivity";
+    public static final String EXTRA_SIGNED_OUT_BOOLEAN = "com.baker.flukes.urent.signed_out";
     private static final int RC_SIGN_IN = 0;
 
     private GoogleApiClient mGoogleApiClient;
     private FirebaseAuth mAuth;
+    private boolean mSignOut = false;
+
+    public static Intent newIntent(Context packageContext, boolean signedOut){
+        Intent intent = new Intent(packageContext, SignInActivity.class);
+        intent.putExtra(EXTRA_SIGNED_OUT_BOOLEAN, signedOut);
+        return intent;
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         Log.d(TAG, "onCreate(Bundle) called");
         setContentView(R.layout.activity_sign_in);
+        if(getIntent().hasExtra(EXTRA_SIGNED_OUT_BOOLEAN)){
+            mSignOut = (boolean) getIntent().getSerializableExtra(EXTRA_SIGNED_OUT_BOOLEAN);
+        }
+        Log.d(TAG, "value of mSignOut: " + mSignOut);
 
         mAuth = FirebaseAuth.getInstance();
 
@@ -53,6 +68,7 @@ public class SignInActivity extends AppCompatActivity implements GoogleApiClient
         // Build a GoogleApiClient with access to the Google Sign-In API and the
         // options specified by gso.
         mGoogleApiClient = new GoogleApiClient.Builder(this)
+                .addConnectionCallbacks(this)
                 .enableAutoManage(this, this)
                 .addApi(Auth.GOOGLE_SIGN_IN_API, gso)
                 .build();
@@ -64,19 +80,25 @@ public class SignInActivity extends AppCompatActivity implements GoogleApiClient
             }
         });
 
-        // Attempt silentSignIn to log in user who has already signed into our app
-        // from this device
-        OptionalPendingResult<GoogleSignInResult> pendingResult = Auth.GoogleSignInApi.silentSignIn(mGoogleApiClient);
-        if (pendingResult.isDone()) {
-            // There's immediate result available.
-            handleSignInResult(pendingResult.get());
-        } else {
-            pendingResult.setResultCallback(new ResultCallback<GoogleSignInResult>() {
-                @Override
-                public void onResult(@NonNull GoogleSignInResult result) {
-                    handleSignInResult(result);
-                }
-            });
+        if(mSignOut){
+            FirebaseAuth.getInstance().signOut();
+            mGoogleApiClient.connect();
+            Log.d(TAG, "signed out of Firebase");
+        }else{
+            // Attempt silentSignIn to log in user who has already signed into our app
+            // from this device
+            OptionalPendingResult<GoogleSignInResult> pendingResult = Auth.GoogleSignInApi.silentSignIn(mGoogleApiClient);
+            if (pendingResult.isDone()) {
+                // There's immediate result available.
+                handleSignInResult(pendingResult.get());
+            } else {
+                pendingResult.setResultCallback(new ResultCallback<GoogleSignInResult>() {
+                    @Override
+                    public void onResult(@NonNull GoogleSignInResult result) {
+                        handleSignInResult(result);
+                    }
+                });
+            }
         }
     }
 
@@ -136,6 +158,7 @@ public class SignInActivity extends AppCompatActivity implements GoogleApiClient
             // Proceed to app
             Intent intent = new Intent(this, UniversityListActivity.class);
             startActivity(intent);
+            finish();
         }
     }
 
@@ -175,5 +198,28 @@ public class SignInActivity extends AppCompatActivity implements GoogleApiClient
     public void onDestroy() {
         super.onDestroy();
         Log.d(TAG, "onDestroy() called");
+    }
+
+    @Override
+    public void onConnected(@Nullable Bundle bundle) {
+        if(mSignOut){
+            if(mGoogleApiClient.isConnected()){
+                Auth.GoogleSignInApi.signOut(mGoogleApiClient).setResultCallback(
+                        new ResultCallback<Status>() {
+                            @Override
+                            public void onResult(@NonNull Status status) {
+
+                            }
+                        }
+                );
+                mSignOut = false;
+                mGoogleApiClient.disconnect();
+            }
+        }
+    }
+
+    @Override
+    public void onConnectionSuspended(int i) {
+
     }
 }

@@ -1,8 +1,5 @@
 package com.baker.flukes.urent;
 
-import android.app.Activity;
-import android.app.SearchManager;
-import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
@@ -11,13 +8,9 @@ import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
-import android.view.Menu;
-import android.view.MenuInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
 import android.widget.TextView;
-import android.widget.Toast;
 import android.util.Log;
 
 import com.google.firebase.database.ChildEventListener;
@@ -37,8 +30,12 @@ public class PropertyListFragment extends Fragment {
 
     private static final String TAG = "PropertyListFragment";
     private static final String ARG_UNIVERSITY_ID = "university_id";
+    private static final String ARG_USER_ID = "user_id";
 
-    private DatabaseReference mDatabase;
+    private DatabaseReference mPropertiesDatabase;
+    private DatabaseReference mUniversityDatabase;
+    private DatabaseReference mUserDatabase;
+    private List<String> propertyIds;
     private List<Property> mProperties;
 
     private RecyclerView mPropertyRecyclerView;
@@ -47,9 +44,17 @@ public class PropertyListFragment extends Fragment {
     private FloatingActionButton mMapButton;
     private FloatingActionButton mAddPropertyButton;
 
-    public static PropertyListFragment newInstance(String universityId){
+    public static PropertyListFragment newInstanceForUniversity(String universityId){
         Bundle args = new Bundle();
         args.putSerializable(ARG_UNIVERSITY_ID, universityId);
+        PropertyListFragment fragment = new PropertyListFragment();
+        fragment.setArguments(args);
+        return fragment;
+    }
+
+    public static PropertyListFragment newInstanceForUser(String userId){
+        Bundle args = new Bundle();
+        args.putSerializable(ARG_USER_ID, userId);
         PropertyListFragment fragment = new PropertyListFragment();
         fragment.setArguments(args);
         return fragment;
@@ -60,33 +65,8 @@ public class PropertyListFragment extends Fragment {
         Log.d(TAG, "onCreateView() called");
         View view = inflater.inflate(R.layout.fragment_property_list, container, false);
 
-        mSwipeContainer = (SwipeRefreshLayout) view.findViewById(R.id.swipeContainer);
-        mSwipeContainer.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
-            @Override
-            public void onRefresh() {
-                Log.d(TAG, "onRefresh called");
-                // Your code to refresh the list here.
-                // Make sure you call swipeContainer.setRefreshing(false)
-                // once the network request has completed successfully.
-                updateUI();
-            }
-        });
-        mSwipeContainer.setColorSchemeResources(android.R.color.holo_blue_bright,
-                android.R.color.holo_green_light,
-                android.R.color.holo_orange_light,
-                android.R.color.holo_red_light);
-
-        mAddPropertyButton = (FloatingActionButton) view.findViewById(R.id.add_property_button);
-        mAddPropertyButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent intent = PropertyActivity.newIntent(getActivity(), null);
-                startActivity(intent);
-            }
-        });
-
         mProperties = new ArrayList<>();
-        mDatabase = DatabaseManager.getInstance().GetPropertyListReference();
+        mPropertiesDatabase = DatabaseManager.getInstance().GetPropertyListReference();
         ChildEventListener childEventListener = new ChildEventListener() {
             @Override
             public void onChildAdded(DataSnapshot dataSnapshot, String s) {
@@ -151,17 +131,42 @@ public class PropertyListFragment extends Fragment {
                 //Toast.makeText(context, "Failed to load properties.", Toast.LENGTH_SHORT).show();
             }
         };
-        mDatabase.addChildEventListener(childEventListener);
-        mDatabase.addListenerForSingleValueEvent(new ValueEventListener() {
+        mPropertiesDatabase.addChildEventListener(childEventListener);
+        mPropertiesDatabase.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
-                Log.d(TAG, "done loading initial data");
+                Log.d(TAG, "done loading initial data for all properties");
                 updateUI();
             }
 
             @Override
             public void onCancelled(DatabaseError databaseError) {
                 Log.d(TAG, "error loading initial data");
+            }
+        });
+
+        mSwipeContainer = (SwipeRefreshLayout) view.findViewById(R.id.swipeContainer);
+        mSwipeContainer.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+            @Override
+            public void onRefresh() {
+                Log.d(TAG, "onRefresh called");
+                // Your code to refresh the list here.
+                // Make sure you call swipeContainer.setRefreshing(false)
+                // once the network request has completed successfully.
+                updateUI();
+            }
+        });
+        mSwipeContainer.setColorSchemeResources(android.R.color.holo_blue_bright,
+                android.R.color.holo_green_light,
+                android.R.color.holo_orange_light,
+                android.R.color.holo_red_light);
+
+        mAddPropertyButton = (FloatingActionButton) view.findViewById(R.id.add_property_button);
+        mAddPropertyButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = PropertyActivity.newIntent(getActivity(), null);
+                startActivity(intent);
             }
         });
 
@@ -181,7 +186,19 @@ public class PropertyListFragment extends Fragment {
 
     private void updateUI() {
         Log.d(TAG, "updateUI");
-        mAdapter = new PropertyAdapter(mProperties);
+        if(propertyIds == null){
+            Log.d(TAG, "full property list being displayed");
+            mAdapter = new PropertyAdapter(mProperties);
+        }else{
+            Log.d(TAG, "filtered property list being displayed");
+            List<Property> filteredProperties = new ArrayList<>();
+            for(Property property : mProperties){
+                if(propertyIds.contains(property.getId())){
+                    filteredProperties.add(property);
+                }
+            }
+            mAdapter = new PropertyAdapter(filteredProperties);
+        }
         mPropertyRecyclerView.setAdapter(mAdapter);
         mSwipeContainer.setRefreshing(false);
     }
@@ -245,6 +262,132 @@ public class PropertyListFragment extends Fragment {
     {
         Log.d(TAG, "onCreate");
         super.onCreate(savedInstanceState);
+        if(getArguments().containsKey(ARG_UNIVERSITY_ID)){
+            propertyIds = new ArrayList<>();
+            final String universityId = (String) getArguments().getSerializable(ARG_UNIVERSITY_ID);
+            Log.d(TAG, "onCreate: universityId received: " + universityId);
+            mUniversityDatabase = DatabaseManager.getInstance().GetUniversityPropertyListReference(universityId);
+            ChildEventListener childEventListener = new ChildEventListener() {
+                @Override
+                public void onChildAdded(DataSnapshot dataSnapshot, String s) {
+                    Log.d(TAG, "onChildAdded:" + dataSnapshot.getKey());
+                    propertyIds.add(dataSnapshot.getKey());
+                }
+
+                @Override
+                public void onChildChanged(DataSnapshot dataSnapshot, String s) {
+                    Log.d(TAG, "onChildChanged:" + dataSnapshot.getKey());
+                }
+
+                @Override
+                public void onChildRemoved(DataSnapshot dataSnapshot) {
+                    Log.d(TAG, "onChildRemoved:" + dataSnapshot.getKey());
+
+                    // A property has changed, use the key to determine if we are displaying this
+                    // property and if so remove it.
+                    String propertyKey = dataSnapshot.getKey();
+                    int toRemove = -1;
+                    for(int i = 0; i < propertyIds.size(); i++){
+                        if(propertyIds.get(i).equals(propertyKey)){
+                            toRemove = i;
+                            break;
+                        }
+                    }
+                    if(toRemove >= 0){
+                        propertyIds.remove(toRemove);
+                    }
+                }
+
+                @Override
+                public void onChildMoved(DataSnapshot dataSnapshot, String s) {
+                    Log.d(TAG, "onChildMoved:" + dataSnapshot.getKey());
+                    // don't care about this
+                }
+
+                @Override
+                public void onCancelled(DatabaseError databaseError) {
+                    Log.w(TAG, "postProperties:onCancelled", databaseError.toException());
+                    //Toast.makeText(context, "Failed to load properties.", Toast.LENGTH_SHORT).show();
+                }
+            };
+            mUniversityDatabase.addChildEventListener(childEventListener);
+            mUniversityDatabase.addListenerForSingleValueEvent(new ValueEventListener() {
+                @Override
+                public void onDataChange(DataSnapshot dataSnapshot) {
+                    Log.d(TAG, "done loading initial data for university properties");
+                    updateUI();
+                }
+
+                @Override
+                public void onCancelled(DatabaseError databaseError) {
+                    Log.d(TAG, "error loading initial data");
+                }
+            });
+        }else if(getArguments().containsKey(ARG_USER_ID)){
+            propertyIds = new ArrayList<>();
+            final String userId = (String) getArguments().getSerializable(ARG_USER_ID);
+            Log.d(TAG, "onCreate: userId received: " + userId);
+            mUserDatabase = DatabaseManager.getInstance().GetUserPropertyListReference(userId);
+            ChildEventListener childEventListener = new ChildEventListener() {
+                @Override
+                public void onChildAdded(DataSnapshot dataSnapshot, String s) {
+                    Log.d(TAG, "onChildAdded:" + dataSnapshot.getKey());
+                    propertyIds.add(dataSnapshot.getKey());
+                }
+
+                @Override
+                public void onChildChanged(DataSnapshot dataSnapshot, String s) {
+                    Log.d(TAG, "onChildChanged:" + dataSnapshot.getKey());
+                }
+
+                @Override
+                public void onChildRemoved(DataSnapshot dataSnapshot) {
+                    Log.d(TAG, "onChildRemoved:" + dataSnapshot.getKey());
+
+                    // A property has changed, use the key to determine if we are displaying this
+                    // property and if so remove it.
+                    String propertyKey = dataSnapshot.getKey();
+                    int toRemove = -1;
+                    for(int i = 0; i < propertyIds.size(); i++){
+                        if(propertyIds.get(i).equals(propertyKey)){
+                            toRemove = i;
+                            break;
+                        }
+                    }
+                    if(toRemove >= 0){
+                        propertyIds.remove(toRemove);
+                    }
+                }
+
+                @Override
+                public void onChildMoved(DataSnapshot dataSnapshot, String s) {
+                    Log.d(TAG, "onChildMoved:" + dataSnapshot.getKey());
+                    // don't care about this
+                }
+
+                @Override
+                public void onCancelled(DatabaseError databaseError) {
+                    Log.w(TAG, "postProperties:onCancelled", databaseError.toException());
+                    //Toast.makeText(context, "Failed to load properties.", Toast.LENGTH_SHORT).show();
+                }
+            };
+            mUserDatabase.addChildEventListener(childEventListener);
+            mUserDatabase.addListenerForSingleValueEvent(new ValueEventListener() {
+                @Override
+                public void onDataChange(DataSnapshot dataSnapshot) {
+                    Log.d(TAG, "done loading initial data for user properties");
+                    updateUI();
+                }
+
+                @Override
+                public void onCancelled(DatabaseError databaseError) {
+                    Log.d(TAG, "error loading initial data");
+                }
+            });
+        }else{
+            propertyIds = null;
+            Log.d(TAG, "onCreate: no userId or universityId received ");
+        }
     }
 
     @Override

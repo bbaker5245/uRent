@@ -139,7 +139,7 @@ public class UniversityListFragment extends ListFragment implements SearchView.O
     public void onListItemClick(ListView listView, View v, int position, long id) {
         University university = (University) listView.getAdapter().getItem(position);
         Log.d(TAG, university.getName() + " clicked!");
-        Intent intent = PropertyListActivity.newIntent(getActivity(), university.getId());
+        Intent intent = PropertyListActivity.newIntentForUniversity(getActivity(), university.getId());
         startActivity(intent);
     }
 
