@@ -62,24 +62,14 @@ public class MapsFragment extends SupportMapFragment {
 
         LocationRequest request = LocationRequest.create();
         request.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
-        request.setNumUpdates(1);
+        request.setNumUpdates(100);
         request.setInterval(0);
-        Location mLocation = LocationServices.FusedLocationApi.getLastLocation(mClient);
-        if(mLocation != null){
-            Log.d(TAG, "Last Location found");
-            MarkerOptions markerOptions = new MarkerOptions();
-            markerOptions.position(new LatLng(mLocation.getLatitude(), mLocation.getLongitude()));
-            markerOptions.title("Current Position");
-            markerOptions.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_MAGENTA));
-            mMap.addMarker(markerOptions);
-        }else{
-            Log.d(TAG, "Last Location was Null");
-        }
         LocationServices.FusedLocationApi
                 .requestLocationUpdates(mClient, request, new LocationListener() {
                     @Override
                     public void onLocationChanged(Location location) {
                         Log.i(TAG, "Got a fix: " + location);
+                        mMap.setMyLocationEnabled(true);
                     }
                 });
     }
@@ -100,7 +90,6 @@ public class MapsFragment extends SupportMapFragment {
                     @Override
                     public void onConnected(Bundle bundle) {
                         getActivity().invalidateOptionsMenu();
-                        getLocation();
                     }
 
                     @Override
@@ -120,23 +109,13 @@ public class MapsFragment extends SupportMapFragment {
                 LatLng property = new LatLng(39.9976762, -83.0085753);
                 try {
                     property = getLocationFromAddress(address);
+                    if(property != null){
+                        Log.d(TAG, property.toString());
+                    }
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
-                try {
-                    Log.d(TAG, getLocationFromAddress(address).toString());
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-
-                //mMap.addMarker(new MarkerOptions().position(property).title(address));
-
-                if (ActivityCompat.checkSelfPermission(getContext(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(getContext(), Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-                    requestPermissions(LOCATION_PERMISSIONS,
-                            REQUEST_LOCATION_PERMISSIONS);
-                }
-                mMap.setMyLocationEnabled(true);
-                mMap.getUiSettings().setMyLocationButtonEnabled(true);
+                mMap.getUiSettings().setMyLocationButtonEnabled(false);
                 mMap.moveCamera(CameraUpdateFactory.newLatLng(osu));
             }
         });
@@ -202,18 +181,6 @@ public class MapsFragment extends SupportMapFragment {
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
-        }
-    }
-    @Override
-    public void onRequestPermissionsResult(int requestCode, String[] permissions,
-                                           int[] grantResults) {
-        switch (requestCode) {
-            case REQUEST_LOCATION_PERMISSIONS:
-                if (hasLocationPermission()) {
-                    getLocation();
-                }
-            default:
-                super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         }
     }
     public  LatLng getLocationFromAddress(String strAddress) throws IOException {
