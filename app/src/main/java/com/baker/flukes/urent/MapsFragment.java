@@ -1,6 +1,7 @@
 package com.baker.flukes.urent;
 
 import android.app.Dialog;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.pm.PackageManager;
 import android.location.Address;
@@ -33,9 +34,17 @@ import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.firebase.database.ChildEventListener;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.ValueEventListener;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Created by rflukes on 10/30/17.
@@ -44,6 +53,7 @@ import java.util.List;
 public class MapsFragment extends SupportMapFragment {
     private GoogleMap mMap;
     private static final String TAG = "MapsFragment";
+    private static final String ARG_UNIVERSITY_ID = "university_id";
     private static final int REQUEST_LOCATION_PERMISSIONS = 0;
     private static final int REQUEST_ERROR = 0;
     private static final String[] LOCATION_PERMISSIONS = new String[]{
@@ -52,14 +62,20 @@ public class MapsFragment extends SupportMapFragment {
     };
     private GoogleApiClient mClient;
     private Location mLocation;
-    private boolean mLocationPermissionGranted = false;
+    private DatabaseReference mPropertiesDatabase;
+    private List<Property> mProperties;
+    private Map<String,String> universities = new HashMap<>();
 
-    public static MapsFragment newInstance() {
-        return new MapsFragment();
+
+    public static MapsFragment newInstance(String universityId){
+        Bundle args = new Bundle();
+        args.putSerializable(ARG_UNIVERSITY_ID, universityId);
+        MapsFragment fragment = new MapsFragment();
+        fragment.setArguments(args);
+        return fragment;
     }
 
     private void getLocation() {
-
         LocationRequest request = LocationRequest.create();
         request.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
         request.setNumUpdates(100);
@@ -84,6 +100,10 @@ public class MapsFragment extends SupportMapFragment {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setHasOptionsMenu(true);
+        universities.put("-Kxl7JXZpVyIMBP_GQ-8","The Ohio Union - Ohio State University");
+        universities.put("-KxlBUACq7Vh6VTgprR3","Michigan Union");
+        universities.put("-KxlBUA_tM2BceD1VrcL","Penn State University");
+        universities.put("-KxlBUAbxBwrZNOqf7qn","49 Abbot Rd, East Lansing, MI");
 
         mClient = new GoogleApiClient.Builder(getActivity())
                 .addApi(LocationServices.API).addConnectionCallbacks(new GoogleApiClient.ConnectionCallbacks() {
@@ -101,26 +121,119 @@ public class MapsFragment extends SupportMapFragment {
         getMapAsync(new OnMapReadyCallback() {
             @Override
             public void onMapReady(GoogleMap googleMap) {
+                Bundle args = getArguments();
+                String university_id = args.getSerializable(ARG_UNIVERSITY_ID).toString();
+                String university = universities.get(university_id);
                 mMap = googleMap;
                 LatLng osu = new LatLng(39.9976772, -83.0085753);
-                mMap.setMinZoomPreference(15.0f);
-                mMap.addMarker(new MarkerOptions().position(osu).title("OSU"));
-                String address = "132 East 12th Ave, Columbus, OH";
-                LatLng property = new LatLng(39.9976762, -83.0085753);
+                mMap.setMinZoomPreference(12.0f);
                 try {
-                    property = getLocationFromAddress(address);
+                    LatLng property  = getLocationFromAddress(getContext(), university);
                     if(property != null){
-                        Log.d(TAG, property.toString());
+                        mMap.addMarker(new MarkerOptions().position(property).title(university));
+                        mMap.moveCamera(CameraUpdateFactory.newLatLng(property));
+
                     }
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
                 mMap.getUiSettings().setMyLocationButtonEnabled(false);
-                mMap.moveCamera(CameraUpdateFactory.newLatLng(osu));
+
+                mProperties = new ArrayList<>();
+                mPropertiesDatabase = DatabaseManager.getInstance(getContext()).GetPropertyListReference();
+                ChildEventListener childEventListener = new ChildEventListener() {
+                    @Override
+                    public void onChildAdded(DataSnapshot dataSnapshot, String s) {
+                        Log.d(TAG, "onChildAdded:" + dataSnapshot.getKey());
+
+                        // A new property has been added, add it to the displayed list
+                        Property property = dataSnapshot.getValue(Property.class);
+                        property.setId(dataSnapshot.getKey());
+                        mProperties.add(property);
+                    }
+                    @Override
+                    public void onChildChanged(DataSnapshot dataSnapshot, String s) {
+                        Log.d(TAG, "onChildChanged:" + dataSnapshot.getKey());
+
+                        // A property has changed, use the key to determine if we are displaying this
+                        // property and if so displayed the changed property.
+                        Property newProperty = dataSnapshot.getValue(Property.class);
+                        String propertyKey = dataSnapshot.getKey();
+                        newProperty.setId(propertyKey);
+
+                        for(int i = 0; i < mProperties.size(); i++){
+                            if(mProperties.get(i).getId().equals(propertyKey)){
+                                mProperties.set(i, newProperty);
+                                break;
+                            }
+                        }
+                    }
+
+                    @Override
+                    public void onChildRemoved(DataSnapshot dataSnapshot) {
+                        Log.d(TAG, "onChildRemoved:" + dataSnapshot.getKey());
+
+                        // A property has changed, use the key to determine if we are displaying this
+                        // property and if so remove it.
+                        String propertyKey = dataSnapshot.getKey();
+                        int toRemove = -1;
+                        for(int i = 0; i < mProperties.size(); i++){
+                            if(mProperties.get(i).getId().equals(propertyKey)){
+                                toRemove = i;
+                                break;
+                            }
+                        }
+                        if(toRemove >= 0){
+                            mProperties.remove(toRemove);
+                        }
+                    }
+                    @Override
+                    public void onChildMoved(DataSnapshot dataSnapshot, String s) {
+                        Log.d(TAG, "onChildMoved:" + dataSnapshot.getKey());
+
+                        // A property has changed position, use the key to determine if we are
+                        // displaying this property and if so move it.
+
+                        // don't care about this now
+                    }
+
+                    @Override
+                    public void onCancelled(DatabaseError databaseError) {
+                        Log.w(TAG, "postProperties:onCancelled", databaseError.toException());
+                        //Toast.makeText(context, "Failed to load properties.", Toast.LENGTH_SHORT).show();
+                    }
+                };
+                mPropertiesDatabase.addChildEventListener(childEventListener);
+                mPropertiesDatabase.addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(DataSnapshot dataSnapshot) {
+                        Log.d(TAG, "done loading initial data for all properties");
+                        addPropertiesToMap();
+                    }
+
+                    @Override
+                    public void onCancelled(DatabaseError databaseError) {
+                        Log.d(TAG, "error loading initial data");
+                    }
+                });
             }
         });
     }
+    private void addPropertiesToMap(){
+        Log.d(TAG, "adding Properties to map");
+        for(Property property : mProperties){
+            try{
+                LatLng latLng = getLocationFromAddress(getContext(), property.getAddress());
+                if(latLng != null){
+                    mMap.addMarker(new MarkerOptions().position(latLng).title(property.getAddress()));
+                }
+            }catch (IOException e){
+                Log.d(TAG,e.getMessage());
+            }
 
+
+        }
+    }
 
     @Override
     public void onStart() {
@@ -183,20 +296,20 @@ public class MapsFragment extends SupportMapFragment {
                 return super.onOptionsItemSelected(item);
         }
     }
-    public  LatLng getLocationFromAddress(String strAddress) throws IOException {
+    public static LatLng getLocationFromAddress(Context context, String strAddress) throws IOException {
 
-        Geocoder coder = new Geocoder(getContext());
-        List<Address> address;
+        Geocoder coder = new Geocoder(context);
+        List<Address> addresses;
         LatLng p1 = null;
 
         try {
-            address = coder.getFromLocationName(strAddress,5);
-            if (address==null) {
-                return null;
+            addresses = coder.getFromLocationName(strAddress,5);
+            if (addresses!=null && addresses.size()>0) {
+                Address location=addresses.get(0);
+                p1 = new LatLng(location.getLatitude(), location.getLongitude());
+                return p1;
             }
-            Address location=address.get(0);
-            p1 = new LatLng(location.getLatitude(), location.getLongitude());
-            return p1;
+
         }catch (Exception e){
             System.out.print(e);
         }

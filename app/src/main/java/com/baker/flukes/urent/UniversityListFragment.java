@@ -41,7 +41,7 @@ public class UniversityListFragment extends ListFragment implements SearchView.O
         mContext = getActivity();
         setHasOptionsMenu(true);
         mUniversities = new ArrayList<>();
-        mDatabase = DatabaseManager.getInstance().GetUniversityListReference();
+        mDatabase = DatabaseManager.getInstance(getContext()).GetUniversityListReference();
         ChildEventListener childEventListener = new ChildEventListener() {
             @Override
             public void onChildAdded(DataSnapshot dataSnapshot, String s) {

@@ -13,6 +13,7 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 import android.util.Log;
 
+import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -30,6 +31,7 @@ public class PropertyListFragment extends Fragment {
 
     private static final String TAG = "PropertyListFragment";
     private static final String ARG_UNIVERSITY_ID = "university_id";
+    public static final String EXTRA_UNIVERSITY_ID = "com.baker.flukes.urent.university_id";
     private static final String ARG_USER_ID = "user_id";
 
     private DatabaseReference mPropertiesDatabase;
@@ -61,12 +63,12 @@ public class PropertyListFragment extends Fragment {
     }
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+    public View onCreateView(LayoutInflater inflater, ViewGroup container, final Bundle savedInstanceState) {
         Log.d(TAG, "onCreateView() called");
         View view = inflater.inflate(R.layout.fragment_property_list, container, false);
 
         mProperties = new ArrayList<>();
-        mPropertiesDatabase = DatabaseManager.getInstance().GetPropertyListReference();
+        mPropertiesDatabase = DatabaseManager.getInstance(getContext()).GetPropertyListReference();
         ChildEventListener childEventListener = new ChildEventListener() {
             @Override
             public void onChildAdded(DataSnapshot dataSnapshot, String s) {
@@ -177,7 +179,9 @@ public class PropertyListFragment extends Fragment {
         mMapButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(getActivity(), MapsActivity.class);
+                Bundle args = getArguments();
+                String university_id = args.getSerializable(ARG_UNIVERSITY_ID).toString();
+                Intent intent = MapsActivity.newIntentForMaps(getActivity(),university_id);
                 startActivity(intent);
             }
         });
@@ -225,8 +229,10 @@ public class PropertyListFragment extends Fragment {
 
         @Override
         public void onClick(View view) {
-            Intent intent = PropertyActivity.newIntent(getActivity(), mProperty.getId());
-            startActivity(intent);
+            if(mProperty.getOwnerId().equals(FirebaseAuth.getInstance().getCurrentUser().getUid())){
+                Intent intent = ViewPropertyActivity.newIntent(getActivity(), mProperty.getId());
+                startActivity(intent);
+            }
             Log.d(TAG, mProperty.getAddress() + " clicked!");
         }
     }
@@ -266,7 +272,7 @@ public class PropertyListFragment extends Fragment {
             propertyIds = new ArrayList<>();
             final String universityId = (String) getArguments().getSerializable(ARG_UNIVERSITY_ID);
             Log.d(TAG, "onCreate: universityId received: " + universityId);
-            mUniversityDatabase = DatabaseManager.getInstance().GetUniversityPropertyListReference(universityId);
+            mUniversityDatabase = DatabaseManager.getInstance(getContext()).GetUniversityPropertyListReference(universityId);
             ChildEventListener childEventListener = new ChildEventListener() {
                 @Override
                 public void onChildAdded(DataSnapshot dataSnapshot, String s) {
@@ -327,7 +333,7 @@ public class PropertyListFragment extends Fragment {
             propertyIds = new ArrayList<>();
             final String userId = (String) getArguments().getSerializable(ARG_USER_ID);
             Log.d(TAG, "onCreate: userId received: " + userId);
-            mUserDatabase = DatabaseManager.getInstance().GetUserPropertyListReference(userId);
+            mUserDatabase = DatabaseManager.getInstance(getContext()).GetUserPropertyListReference(userId);
             ChildEventListener childEventListener = new ChildEventListener() {
                 @Override
                 public void onChildAdded(DataSnapshot dataSnapshot, String s) {

@@ -1,7 +1,10 @@
 package com.baker.flukes.urent;
 
+import android.content.Context;
 import android.util.Log;
 
+import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
@@ -10,6 +13,7 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -26,15 +30,17 @@ public class DatabaseManager {
 
     private static DatabaseManager instance = null;
     private DatabaseReference mDatabase = null;
+    private static Context mContext;
 
     private DatabaseManager(){
         mDatabase = FirebaseDatabase.getInstance().getReference();
     }
 
-    public static DatabaseManager getInstance(){
+    public static DatabaseManager getInstance(Context context){
         if(instance == null){
             instance = new DatabaseManager();
         }
+        mContext = context;
         return instance;
     }
 
@@ -257,7 +263,26 @@ public class DatabaseManager {
         }
     }
 
-    private boolean closeTogether(Property p, University u){
-        return (new Random()).nextBoolean();
+    private boolean closeTogether(Property p, University u) {
+        LatLng location = null;
+        try {
+            location = MapsFragment.getLocationFromAddress(mContext, p.getAddress());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        LatLng university = null;
+        try {
+            university = MapsFragment.getLocationFromAddress(mContext, u.getName());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        LatLng sw = new LatLng(university.latitude-.1, university.longitude-.1);
+        LatLng ne = new LatLng(university.latitude+.1, university.longitude+.1);
+        LatLngBounds boundingBox = new LatLngBounds(sw,ne);
+        if(location != null && boundingBox.contains(location)){
+            return true;
+        }else{
+            return false;
+        }
     }
 }

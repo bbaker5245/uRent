@@ -9,6 +9,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.TextView;
 import android.widget.ToggleButton;
 
 import com.google.firebase.auth.FirebaseAuth;
@@ -19,29 +20,27 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.ValueEventListener;
 
 /**
- * Created by rflukes on 10/30/17.
+ * Created by rflukes on 11/3/17.
  */
 
-public class PropertyFragment extends Fragment{
-
+public class ViewPropertyFragment extends Fragment{
     private static final String TAG = "PropertyFragment";
     private static final String ARG_PROPERTY_ID = "property_id";
 
     private Property mProperty;
+    private TextView mAddress;
+    private TextView mBedrooms;
+    private TextView mBathrooms;
+    private TextView mRent;
+    private TextView mUtilitiesIncluded;
+    private TextView mPetsAllowed;
+    private FloatingActionButton mBackButton;
+    private FloatingActionButton mMessageButton;
 
-    private FloatingActionButton mSubmitButton;
-    private FloatingActionButton mDeleteButton;
-    private EditText mAddress;
-    private EditText mBedrooms;
-    private EditText mBathrooms;
-    private EditText mRent;
-    private ToggleButton mUtilitiesIncluded;
-    private ToggleButton mPetsAllowed;
-
-    public static PropertyFragment newInstance(String propertyId){
+    public static ViewPropertyFragment newInstance(String propertyId){
         Bundle args = new Bundle();
         args.putSerializable(ARG_PROPERTY_ID, propertyId);
-        PropertyFragment fragment = new PropertyFragment();
+        ViewPropertyFragment fragment = new ViewPropertyFragment();
         fragment.setArguments(args);
         return fragment;
     }
@@ -49,63 +48,24 @@ public class PropertyFragment extends Fragment{
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         Log.d(TAG, "onCreateView() called");
-        View view = inflater.inflate(R.layout.fragment_property, container, false);
+        View view = inflater.inflate(R.layout.fragment_view_property, container, false);
 
-        mAddress = (EditText) view.findViewById(R.id.address_input);
-        mBedrooms = (EditText) view.findViewById(R.id.bedroom_input);
-        mBathrooms = (EditText) view.findViewById(R.id.bathroom_input);
-        mRent = (EditText) view.findViewById(R.id.rent_input);
-        mUtilitiesIncluded = (ToggleButton) view.findViewById(R.id.utilities_input);
-        mPetsAllowed = (ToggleButton) view.findViewById(R.id.pets_input);
-        mSubmitButton = (FloatingActionButton) view.findViewById(R.id.submit_button);
-        mSubmitButton.setOnClickListener(new View.OnClickListener() {
+        mAddress = (TextView) view.findViewById(R.id.address_input);
+        mBedrooms = (TextView) view.findViewById(R.id.bedroom_input);
+        mBathrooms = (TextView) view.findViewById(R.id.bathroom_input);
+        mRent = (TextView) view.findViewById(R.id.rent_input);
+        mUtilitiesIncluded = (TextView) view.findViewById(R.id.utilities_input);
+        mPetsAllowed = (TextView) view.findViewById(R.id.pets_input);
+
+        mBackButton = (FloatingActionButton) view.findViewById(R.id.back_button);
+        mBackButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                // Get info from view
-                String address = mAddress.getText().toString();
-                int numBedrooms = Integer.parseInt(mBedrooms.getText().toString());
-                int numBathrooms = Integer.parseInt(mBathrooms.getText().toString());
-                int rent = Integer.parseInt(mRent.getText().toString());
-                boolean includesUtilities = mUtilitiesIncluded.isChecked();
-                boolean petsAllowed = mPetsAllowed.isChecked();
-                FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
-
-                // Update Property object
-                if(mProperty != null){
-                    mProperty.setAddress(address);
-                    mProperty.setBedrooms(numBedrooms);
-                    mProperty.setBathrooms(numBathrooms);
-                    mProperty.setRent(rent);
-                    mProperty.setUtilitiesIncluded(includesUtilities);
-                    mProperty.setPetsAllowed(petsAllowed);
-                    mProperty.setOwnerId(user.getUid());
-                }else{
-                    mProperty = new Property(getContext(), user.getUid(), address, rent, numBedrooms, numBathrooms, petsAllowed, includesUtilities);
-                }
-
-
-                DatabaseManager.getInstance(getContext()).AddProperty(mProperty);
-
                 getActivity().onBackPressed();
             }
         });
 
-        mDeleteButton = (FloatingActionButton) view.findViewById(R.id.delete_button);
-        mDeleteButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                // Update Property object
-                if(mProperty != null){
-                    DatabaseManager.getInstance(getContext()).DeleteProperty(mProperty);
-                }
-
-                getActivity().onBackPressed();
-            }
-        });
-
-        if(mProperty != null){
-            updateUI();
-        }
+        mMessageButton = (FloatingActionButton) view.findViewById(R.id.message_button);
 
         return view;
     }
@@ -115,11 +75,20 @@ public class PropertyFragment extends Fragment{
         try{
             if(mProperty != null){
                 mAddress.setText(mProperty.getAddress());
-                mBedrooms.setText(String.valueOf(mProperty.getBedrooms()));
-                mBathrooms.setText(String.valueOf(mProperty.getBathrooms()));
-                mRent.setText(String.valueOf(mProperty.getRent()));
-                mUtilitiesIncluded.setChecked(mProperty.areUtilitiesIncluded());
-                mPetsAllowed.setChecked(mProperty.arePetsAllowed());
+                mBedrooms.setText("Bedrooms:" + String.valueOf(mProperty.getBedrooms()));
+                mBathrooms.setText("Bathrooms:" + String.valueOf(mProperty.getBathrooms()));
+                mRent.setText("Rent:" + String.valueOf(mProperty.getRent()));
+                if(mProperty.arePetsAllowed()){
+                    mPetsAllowed.setText("Pets are allowed");
+                }else{
+                    mPetsAllowed.setText("Pets are not allowed");
+                }
+                if(mProperty.areUtilitiesIncluded()){
+                    mUtilitiesIncluded.setText("Utilities are included");
+                }else{
+                    mUtilitiesIncluded.setText("Utilities are not included");
+                }
+
             }
         }finally {
             // this means mProperty was updated before UI objects were declared
