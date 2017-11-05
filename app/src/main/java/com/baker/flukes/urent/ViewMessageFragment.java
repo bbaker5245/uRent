@@ -1,5 +1,6 @@
 package com.baker.flukes.urent;
 
+
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
@@ -20,43 +21,38 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.ValueEventListener;
 
+import org.w3c.dom.Text;
+
 /**
- * Created by rflukes on 11/3/17.
+ * Created by rflukes on 11/5/17.
  */
 
-public class ViewPropertyFragment extends Fragment{
-    private static final String TAG = "ViewPropertyFragment";
-    private static final String ARG_PROPERTY_ID = "property_id";
+public class ViewMessageFragment extends Fragment{
+    private static final String TAG = "ViewMessageFragment";
+    private static final String ARG_MESSAGE_ID = "message_id";
 
-    private Property mProperty;
     private TextView mAddress;
-    private TextView mBedrooms;
-    private TextView mBathrooms;
-    private TextView mRent;
-    private TextView mUtilitiesIncluded;
-    private TextView mPetsAllowed;
+    private TextView mContent;
+    private TextView mDate;
     private FloatingActionButton mBackButton;
     private FloatingActionButton mMessageButton;
+    private Message mMessage;
 
-    public static ViewPropertyFragment newInstance(String propertyId){
+    public static ViewMessageFragment newInstance(String messageId){
         Bundle args = new Bundle();
-        args.putSerializable(ARG_PROPERTY_ID, propertyId);
-        ViewPropertyFragment fragment = new ViewPropertyFragment();
+        args.putSerializable(ARG_MESSAGE_ID, messageId);
+        ViewMessageFragment fragment = new ViewMessageFragment();
         fragment.setArguments(args);
         return fragment;
     }
-
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         Log.d(TAG, "onCreateView() called");
-        View view = inflater.inflate(R.layout.fragment_view_property, container, false);
+        View view = inflater.inflate(R.layout.fragment_view_message, container, false);
 
-        mAddress = (TextView) view.findViewById(R.id.address_input);
-        mBedrooms = (TextView) view.findViewById(R.id.bedroom_input);
-        mBathrooms = (TextView) view.findViewById(R.id.bathroom_input);
-        mRent = (TextView) view.findViewById(R.id.rent_input);
-        mUtilitiesIncluded = (TextView) view.findViewById(R.id.utilities_input);
-        mPetsAllowed = (TextView) view.findViewById(R.id.pets_input);
+        mAddress = (TextView) view.findViewById(R.id.address);
+        mContent = (TextView) view.findViewById(R.id.content);
+        mDate = (TextView) view.findViewById(R.id.date);
 
         mBackButton = (FloatingActionButton) view.findViewById(R.id.back_button);
         mBackButton.setOnClickListener(new View.OnClickListener() {
@@ -71,8 +67,14 @@ public class ViewPropertyFragment extends Fragment{
         mMessageButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = MessageActivity.newIntent(getActivity(), mProperty.getAddress(), FirebaseAuth.getInstance().getCurrentUser().getUid(),  mProperty.getOwnerId() );
-                startActivity(intent);
+                if(mMessage.getRecipient().equals(FirebaseAuth.getInstance().getCurrentUser().getUid())){
+                    Intent intent = MessageActivity.newIntent(getActivity(), mMessage.getProperty(), mMessage.getRecipient(),  mMessage.getSender() );
+                    startActivity(intent);
+                }else{
+                    Intent intent = MessageActivity.newIntent(getActivity(), mMessage.getProperty(), mMessage.getSender(),  mMessage.getRecipient() );
+                    startActivity(intent);
+                }
+
             }
         });
 
@@ -82,25 +84,13 @@ public class ViewPropertyFragment extends Fragment{
     private void updateUI(){
         Log.d(TAG, "updateUI()");
         try{
-            if(mProperty != null){
-                mAddress.setText(mProperty.getAddress());
-                mBedrooms.setText("Bedrooms:" + String.valueOf(mProperty.getBedrooms()));
-                mBathrooms.setText("Bathrooms:" + String.valueOf(mProperty.getBathrooms()));
-                mRent.setText("Rent:" + String.valueOf(mProperty.getRent()));
-                if(mProperty.arePetsAllowed()){
-                    mPetsAllowed.setText("Pets are allowed");
-                }else{
-                    mPetsAllowed.setText("Pets are not allowed");
-                }
-                if(mProperty.areUtilitiesIncluded()){
-                    mUtilitiesIncluded.setText("Utilities are included");
-                }else{
-                    mUtilitiesIncluded.setText("Utilities are not included");
-                }
-
+            if(mMessage != null){
+                mAddress.setText(mMessage.getProperty());
+                mDate.setText(mMessage.getDate());
+                mContent.setText(mMessage.getContent());
             }
         }finally {
-            // this means mProperty was updated before UI objects were declared
+            // this means message was updated before UI objects were declared
         }
     }
 
@@ -109,16 +99,16 @@ public class ViewPropertyFragment extends Fragment{
     {
         Log.d(TAG, "onCreate");
         super.onCreate(savedInstanceState);
-        final String propertyId = (String) getArguments().getSerializable(ARG_PROPERTY_ID);
-        Log.d(TAG, "onCreate: propertyId received: " + propertyId);
-        DatabaseReference ref = DatabaseManager.getInstance(getContext()).GetPropertyReference(propertyId);
+        final String messageId = (String) getArguments().getSerializable(ARG_MESSAGE_ID);
+        Log.d(TAG, "onCreate: messageId received: " + messageId);
+        DatabaseReference ref = DatabaseManager.getInstance(getContext()).GetMessageReference(messageId);
         ref.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
-                Log.d(TAG, "done loading property data");
-                mProperty = dataSnapshot.getValue(Property.class);
-                if(mProperty != null){
-                    mProperty.setId(propertyId);
+                Log.d(TAG, "done loading message data");
+                mMessage = dataSnapshot.getValue(Message.class);
+                if(mMessage != null){
+                    mMessage.setId(messageId);
                     updateUI();
                 }
             }

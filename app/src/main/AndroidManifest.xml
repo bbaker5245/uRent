@@ -29,7 +29,10 @@
         <activity android:name=".PropertyListActivity" />
         <activity android:name=".UniversityListActivity" />
         <activity android:name=".PropertyActivity" />
+        <activity android:name=".MessageActivity" />
+        <activity android:name=".MessageListActivity"/>
         <activity android:name=".ViewPropertyActivity" />
+        <activity android:name=".ViewMessageActivity"/>
         <!--
              The API key for Google Maps-based APIs is defined as a string resource.
              (See the file "res/values/google_maps_api.xml").

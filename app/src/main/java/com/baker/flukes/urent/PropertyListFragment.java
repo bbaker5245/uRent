@@ -45,8 +45,10 @@ public class PropertyListFragment extends Fragment {
     private PropertyAdapter mAdapter;
     private FloatingActionButton mMapButton;
     private FloatingActionButton mAddPropertyButton;
+    private static boolean showMapButton;
 
     public static PropertyListFragment newInstanceForUniversity(String universityId){
+        showMapButton = true;
         Bundle args = new Bundle();
         args.putSerializable(ARG_UNIVERSITY_ID, universityId);
         PropertyListFragment fragment = new PropertyListFragment();
@@ -55,6 +57,7 @@ public class PropertyListFragment extends Fragment {
     }
 
     public static PropertyListFragment newInstanceForUser(String userId){
+        showMapButton = false;
         Bundle args = new Bundle();
         args.putSerializable(ARG_USER_ID, userId);
         PropertyListFragment fragment = new PropertyListFragment();
@@ -176,11 +179,13 @@ public class PropertyListFragment extends Fragment {
         mPropertyRecyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
 
         mMapButton = (FloatingActionButton) view.findViewById(R.id.map_button);
+        if(!showMapButton){
+            mMapButton.setVisibility(View.INVISIBLE);
+        }
         mMapButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Bundle args = getArguments();
-                String university_id = args.getSerializable(ARG_UNIVERSITY_ID).toString();
+                String university_id = (String) getArguments().getSerializable(ARG_UNIVERSITY_ID);
                 Intent intent = MapsActivity.newIntentForMaps(getActivity(),university_id);
                 startActivity(intent);
             }
@@ -230,6 +235,9 @@ public class PropertyListFragment extends Fragment {
         @Override
         public void onClick(View view) {
             if(mProperty.getOwnerId().equals(FirebaseAuth.getInstance().getCurrentUser().getUid())){
+                Intent intent = PropertyActivity.newIntent(getActivity(), mProperty.getId());
+                startActivity(intent);
+            }else{
                 Intent intent = ViewPropertyActivity.newIntent(getActivity(), mProperty.getId());
                 startActivity(intent);
             }

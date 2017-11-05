@@ -10,7 +10,7 @@ import android.support.v4.app.Fragment;
 
 public class ViewPropertyActivity extends SingleFragmentActivity {
 
-    private static final String TAG = "PropertyActivity";
+    private static final String TAG = "ViewPropertyActivity";
     public static final String EXTRA_PROPERTY_ID = "com.baker.flukes.urent.property_id";
 
     public static Intent newIntent(Context packageContext, String propertyId){

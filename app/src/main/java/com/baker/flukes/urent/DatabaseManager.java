@@ -75,9 +75,19 @@ public class DatabaseManager {
         addPropertyToNearbyUniversities(property);
     }
 
+    public DatabaseReference GetUserEmailReference(String userId){
+        Log.d(TAG, "GetUserReference");
+        return FirebaseDatabase.getInstance().getReference().child("/users").child("/" + userId).child("/email");
+    }
+
     public DatabaseReference GetPropertyReference(String propertyId){
         Log.d(TAG, "GetPropertyReference");
         return FirebaseDatabase.getInstance().getReference().child("/properties").child("/" + propertyId);
+    }
+
+    public DatabaseReference GetMessageReference(String messageId){
+        Log.d(TAG, "GetMessageReference");
+        return FirebaseDatabase.getInstance().getReference().child("/messages").child("/" + messageId);
     }
 
     public void DeleteProperty(Property property){
@@ -95,6 +105,11 @@ public class DatabaseManager {
         return FirebaseDatabase.getInstance().getReference().child("/properties");
     }
 
+    public DatabaseReference GetMessageListReference(){
+        Log.d(TAG, "GetMessageListReference");
+        return FirebaseDatabase.getInstance().getReference().child("/messages");
+    }
+
     public DatabaseReference GetUniversityPropertyListReference(String universityId){
         Log.d(TAG, "GetUniversityPropertyListReference");
         return FirebaseDatabase.getInstance().getReference().child("/universities").child("/" + universityId).child("/properties");
@@ -103,6 +118,11 @@ public class DatabaseManager {
     public DatabaseReference GetUserPropertyListReference(String userId){
         Log.d(TAG, "GetUserPropertyListReference");
         return FirebaseDatabase.getInstance().getReference().child("/users").child("/" + userId).child("/properties");
+    }
+
+    public DatabaseReference GetUserMessageListReference(String userId){
+        Log.d(TAG, "GetUserMessageListReference");
+        return FirebaseDatabase.getInstance().getReference().child("/users").child("/" + userId).child("/messages");
     }
 
     public void AddUniversity(University university){
@@ -120,13 +140,44 @@ public class DatabaseManager {
             university.setId(key);
             Log.d(TAG, "new id: " + key);
         }
-
-
         // Create update for /universities/$id child
         Map<String, Object> propertyValues = university.toMap();
         Map<String, Object> propertiesUpdates = new HashMap<>();
         propertiesUpdates.put("/" + key, propertyValues);
         databaseProperties.updateChildren(propertiesUpdates);
+    }
+    public void AddMessage(Message message){
+        Log.d(TAG, "AddMessage");
+
+        DatabaseReference databaseProperties = mDatabase.child("/messages");
+        DatabaseReference databaseSenderProperties = mDatabase.child("/users").child("/" + message.getSender()).child("/messages");
+        DatabaseReference databaseRecipientProperties = mDatabase.child("/users").child("/" + message.getRecipient()).child("/messages");
+        String key;
+        if(message.getId() != null){
+            key = message.getId();
+            Log.d(TAG, "existing id: " + key);
+        }else{
+            key = databaseProperties.push().getKey();
+            message.setId(key);
+            Log.d(TAG, "new id: " + key);
+        }
+        // Create update for /messages/$id child
+        Map<String, Object> messageValues = message.toMap();
+        Map<String, Object> messageUpdates = new HashMap<>();
+        messageUpdates.put("/" + key, messageValues);
+        databaseProperties.updateChildren(messageUpdates);
+
+
+        // Create update for /users/$userId/messages child for sender
+        Map<String, Object> senderUpdates = new HashMap<>();
+        senderUpdates.put("/" + key, true);
+        databaseSenderProperties.updateChildren(senderUpdates);
+
+        // Create update for /users/$userId/messages child for recipient
+        Map<String, Object> recipientUpdates = new HashMap<>();
+        recipientUpdates.put("/" + key, true);
+        databaseRecipientProperties.updateChildren(recipientUpdates);
+
     }
 
     public DatabaseReference GetUniversityListReference(){
@@ -270,14 +321,16 @@ public class DatabaseManager {
         } catch (IOException e) {
             e.printStackTrace();
         }
+
         LatLng university = null;
         try {
             university = MapsFragment.getLocationFromAddress(mContext, u.getName());
         } catch (IOException e) {
             e.printStackTrace();
         }
-        LatLng sw = new LatLng(university.latitude-.1, university.longitude-.1);
-        LatLng ne = new LatLng(university.latitude+.1, university.longitude+.1);
+
+        LatLng sw = new LatLng(university.latitude-.2, university.longitude-.2);
+        LatLng ne = new LatLng(university.latitude+.2, university.longitude+.2);
         LatLngBounds boundingBox = new LatLngBounds(sw,ne);
         if(location != null && boundingBox.contains(location)){
             return true;

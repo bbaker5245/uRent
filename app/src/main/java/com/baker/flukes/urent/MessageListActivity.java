@@ -1,27 +1,31 @@
 package com.baker.flukes.urent;
 
-
 import android.content.Context;
 import android.content.Intent;
 import android.support.v4.app.Fragment;
 import android.util.Log;
 
+/**
+ * Created by rflukes on 11/5/17.
+ */
 
-public class MapsActivity extends SingleFragmentActivity{
+public class MessageListActivity extends SingleFragmentActivity{
+    private static final String TAG = "MessageListActivity";
+    public static final String EXTRA_USER_ID = "com.baker.flukes.urent.user_id";
 
-    private static final String TAG = "MapsActivity";
-    public static final String EXTRA_UNIVERSITY_ID = "com.baker.flukes.urent.university_id";
-
-    protected Fragment createFragment(){
-        String universityId = (String) getIntent().getSerializableExtra(EXTRA_UNIVERSITY_ID);
-        return MapsFragment.newInstance(universityId);
-    }
-
-    public static Intent newIntentForMaps(Context packageContext, String universityId){
-        Intent intent = new Intent(packageContext, MapsActivity.class);
-        intent.putExtra(EXTRA_UNIVERSITY_ID, universityId);
+    public static Intent newIntentForUser(Context packageContext, String userId){
+        Intent intent = new Intent(packageContext, MessageListActivity.class);
+        intent.putExtra(EXTRA_USER_ID, userId);
         return intent;
     }
+
+
+    @Override
+    protected Fragment createFragment(){
+        String userId = (String) getIntent().getSerializableExtra(EXTRA_USER_ID);
+        return MessageListFragment.newInstance(userId);
+    }
+
     @Override
     public void onStart() {
         super.onStart();
@@ -51,5 +55,4 @@ public class MapsActivity extends SingleFragmentActivity{
         super.onDestroy();
         Log.d(TAG, "onDestroy() called");
     }
-
 }

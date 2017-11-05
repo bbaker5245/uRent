@@ -66,6 +66,7 @@ public abstract class SingleFragmentActivity extends AppCompatActivity implement
     @Override
     public boolean onNavigationItemSelected(@NonNull MenuItem item) {
         // Handle navigation view item clicks here.
+        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
         switch(item.getItemId()){
             case R.id.nav_housing:
                 Log.d(TAG, "Universities clicked");
@@ -74,12 +75,13 @@ public abstract class SingleFragmentActivity extends AppCompatActivity implement
                 return true;
             case R.id.nav_properties:
                 Log.d(TAG, "My Properties clicked");
-                FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
                 Intent propertiesIntent = PropertyListActivity.newIntentForUser(this, user.getUid());
                 startActivity(propertiesIntent);
                 return true;
             case R.id.nav_messages:
                 Log.d(TAG, "My messages clicked");
+                Intent messagesIntent = MessageListActivity.newIntentForUser(this, user.getUid());
+                startActivity(messagesIntent);
                 return true;
             case R.id.nav_logout:
                 Log.d(TAG, "Logout clicked");
