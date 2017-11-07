@@ -2,7 +2,6 @@ package com.baker.flukes.urent;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.LinearLayoutManager;
@@ -21,6 +20,7 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -152,19 +152,22 @@ public class MessageListFragment extends Fragment{
 
     private void updateUI() {
         Log.d(TAG, "updateUI");
+        List<Message> filteredMessages = new ArrayList<>();
         if(messageIds == null){
             Log.d(TAG, "full message list being displayed");
-            mAdapter = new MessageListFragment.MessageAdapter(mMessages);
+            for(Message message : mMessages){
+                filteredMessages.add(message);
+            }
         }else{
             Log.d(TAG, "filtered message list being displayed");
-            List<Message> filteredMessages = new ArrayList<>();
             for(Message message : mMessages){
                 if(messageIds.contains(message.getId())){
                     filteredMessages.add(message);
                 }
             }
-            mAdapter = new MessageListFragment.MessageAdapter(filteredMessages);
         }
+        Collections.reverse(filteredMessages);
+        mAdapter = new MessageListFragment.MessageAdapter(filteredMessages);
         mMessageRecyclerView.setAdapter(mAdapter);
         mSwipeContainer.setRefreshing(false);
     }
