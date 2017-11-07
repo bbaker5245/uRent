@@ -33,11 +33,11 @@ public class MessageFragment extends Fragment{
     private static final String ARG_SENDER_ID = "sender_id";
     private static final String ARG_RECIPIENT_ID = "recipient_id";
 
-    private Button mSendMessageButton;
     private TextView mDate;
     private TextView mAddress;
     private EditText mMessageContent;
     private FloatingActionButton mBackButton;
+    private FloatingActionButton mSendMessageButton;
     private TextView mSender;
     private TextView mRecipient;
 
@@ -100,7 +100,7 @@ public class MessageFragment extends Fragment{
             }
         });
 
-        mSendMessageButton = (Button) view.findViewById(R.id.send_message_button);
+        mSendMessageButton = (FloatingActionButton) view.findViewById(R.id.send_message_button);
         mSendMessageButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {

@@ -50,13 +50,6 @@
             android:lines="3"
             android:inputType="text"/>
 
-        <Button
-            android:id="@+id/send_message_button"
-            android:layout_height="wrap_content"
-            android:layout_width="match_parent"
-            android:gravity="center|bottom"
-            android:text="Send  Message"/>
-
     </LinearLayout>
     <android.support.design.widget.FloatingActionButton
         android:id="@+id/back_button"
@@ -64,7 +57,17 @@
         android:layout_height="wrap_content"
         android:layout_gravity="bottom"
         android:layout_margin="16dp"
-        android:src="@drawable/ic_home_black_24dp"
+        android:src="@drawable/ic_backspace_black_24dp"
+        app:backgroundTint="@color/colorPrimary"
+        app:fabSize="normal" />
+
+    <android.support.design.widget.FloatingActionButton
+        android:id="@+id/send_message_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|end"
+        android:layout_margin="16dp"
+        android:src="@drawable/ic_send_black_24dp"
         app:backgroundTint="@color/colorPrimary"
         app:fabSize="normal" />
 
