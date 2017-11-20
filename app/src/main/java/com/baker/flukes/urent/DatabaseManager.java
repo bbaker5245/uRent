@@ -314,7 +314,7 @@ public class DatabaseManager {
         }
     }
 
-    private boolean closeTogether(Property p, University u) {
+    public boolean closeTogether(Property p, University u) {
         LatLng location = null;
         try {
             location = MapsFragment.getLocationFromAddress(mContext, p.getAddress());
