@@ -34,6 +34,7 @@ public class MessageListFragment extends Fragment{
     private DatabaseReference mUserDatabase;
     private List<String> messageIds;
     private List<Message> mMessages;
+    private boolean mMessageListDirty = false;
 
     private RecyclerView mMessageRecyclerView;
     private SwipeRefreshLayout mSwipeContainer;
@@ -62,6 +63,7 @@ public class MessageListFragment extends Fragment{
                 Message message = dataSnapshot.getValue(Message.class);
                 message.setId(dataSnapshot.getKey());
                 mMessages.add(message);
+                mMessageListDirty = true;
             }
 
             @Override
@@ -78,6 +80,7 @@ public class MessageListFragment extends Fragment{
                         break;
                     }
                 }
+                mMessageListDirty = true;
             }
 
             @Override
@@ -95,6 +98,7 @@ public class MessageListFragment extends Fragment{
                 if(toRemove >= 0){
                     mMessages.remove(toRemove);
                 }
+                mMessageListDirty = true;
             }
 
             @Override
@@ -118,6 +122,7 @@ public class MessageListFragment extends Fragment{
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 Log.d(TAG, "done loading initial data for all properties");
+                mMessageListDirty = true;
                 updateUI();
             }
 
@@ -153,22 +158,25 @@ public class MessageListFragment extends Fragment{
     private void updateUI() {
         Log.d(TAG, "updateUI");
         List<Message> filteredMessages = new ArrayList<>();
-        if(messageIds == null){
-            Log.d(TAG, "full message list being displayed");
-            for(Message message : mMessages){
-                filteredMessages.add(message);
-            }
-        }else{
-            Log.d(TAG, "filtered message list being displayed");
-            for(Message message : mMessages){
-                if(messageIds.contains(message.getId())){
+        if(mMessageListDirty){
+            if(messageIds == null){
+                Log.d(TAG, "full message list being displayed");
+                for(Message message : mMessages){
                     filteredMessages.add(message);
                 }
+            }else{
+                Log.d(TAG, "filtered message list being displayed");
+                for(Message message : mMessages){
+                    if(messageIds.contains(message.getId())){
+                        filteredMessages.add(message);
+                    }
+                }
             }
+            Collections.reverse(filteredMessages);
+            mAdapter = new MessageListFragment.MessageAdapter(filteredMessages);
+            mMessageRecyclerView.setAdapter(mAdapter);
+            mMessageListDirty = false;
         }
-        Collections.reverse(filteredMessages);
-        mAdapter = new MessageListFragment.MessageAdapter(filteredMessages);
-        mMessageRecyclerView.setAdapter(mAdapter);
         mSwipeContainer.setRefreshing(false);
     }
 
@@ -279,6 +287,7 @@ public class MessageListFragment extends Fragment{
                 public void onChildAdded(DataSnapshot dataSnapshot, String s) {
                     Log.d(TAG, "onChildAdded:" + dataSnapshot.getKey());
                     messageIds.add(dataSnapshot.getKey());
+                    mMessageListDirty = true;
                 }
 
                 @Override
@@ -303,6 +312,7 @@ public class MessageListFragment extends Fragment{
                     if(toRemove >= 0){
                         messageIds.remove(toRemove);
                     }
+                    mMessageListDirty = true;
                 }
 
                 @Override
@@ -322,6 +332,7 @@ public class MessageListFragment extends Fragment{
                 @Override
                 public void onDataChange(DataSnapshot dataSnapshot) {
                     Log.d(TAG, "done loading initial data for user messages");
+                    mMessageListDirty = true;
                     updateUI();
                 }
 

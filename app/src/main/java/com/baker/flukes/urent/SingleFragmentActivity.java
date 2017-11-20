@@ -70,19 +70,19 @@ public abstract class SingleFragmentActivity extends AppCompatActivity implement
         switch(item.getItemId()){
             case R.id.nav_housing:
                 Log.d(TAG, "Universities clicked");
-                //finishAffinity();
+                finishAffinity();
                 Intent housingIntent = new Intent(this, UniversityListActivity.class);
                 startActivity(housingIntent);
                 return true;
             case R.id.nav_properties:
                 Log.d(TAG, "My Properties clicked");
-                //finishAffinity();
+                finishAffinity();
                 Intent propertiesIntent = PropertyListActivity.newIntentForUser(this, user.getUid());
                 startActivity(propertiesIntent);
                 return true;
             case R.id.nav_messages:
                 Log.d(TAG, "My messages clicked");
-                //finishAffinity();
+                finishAffinity();
                 Intent messagesIntent = MessageListActivity.newIntentForUser(this, user.getUid());
                 startActivity(messagesIntent);
                 return true;

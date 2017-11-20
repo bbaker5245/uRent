@@ -39,6 +39,7 @@ public class PropertyListFragment extends Fragment {
     private DatabaseReference mUserDatabase;
     private List<String> propertyIds;
     private List<Property> mProperties;
+    private boolean mPropertyListDirty = false;
 
     private RecyclerView mPropertyRecyclerView;
     private SwipeRefreshLayout mSwipeContainer;
@@ -81,6 +82,7 @@ public class PropertyListFragment extends Fragment {
                 Property property = dataSnapshot.getValue(Property.class);
                 property.setId(dataSnapshot.getKey());
                 mProperties.add(property);
+                mPropertyListDirty = true;
             }
 
             @Override
@@ -99,6 +101,7 @@ public class PropertyListFragment extends Fragment {
                         break;
                     }
                 }
+                mPropertyListDirty = true;
             }
 
             @Override
@@ -118,6 +121,7 @@ public class PropertyListFragment extends Fragment {
                 if(toRemove >= 0){
                     mProperties.remove(toRemove);
                 }
+                mPropertyListDirty = true;
             }
 
             @Override
@@ -141,6 +145,7 @@ public class PropertyListFragment extends Fragment {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 Log.d(TAG, "done loading initial data for all properties");
+                mPropertyListDirty = true;
                 updateUI();
             }
 
@@ -195,20 +200,25 @@ public class PropertyListFragment extends Fragment {
 
     private void updateUI() {
         Log.d(TAG, "updateUI");
-        if(propertyIds == null){
-            Log.d(TAG, "full property list being displayed");
-            mAdapter = new PropertyAdapter(mProperties);
-        }else{
-            Log.d(TAG, "filtered property list being displayed");
-            List<Property> filteredProperties = new ArrayList<>();
-            for(Property property : mProperties){
-                if(propertyIds.contains(property.getId())){
-                    filteredProperties.add(property);
+        Log.d(TAG, "mPropertyListDirty value: " + mPropertyListDirty);
+        if(mPropertyListDirty){
+            Log.d(TAG, "updating");
+            if(propertyIds == null){
+                Log.d(TAG, "full property list being displayed");
+                mAdapter = new PropertyAdapter(mProperties);
+            }else{
+                Log.d(TAG, "filtered property list being displayed");
+                List<Property> filteredProperties = new ArrayList<>();
+                for(Property property : mProperties){
+                    if(propertyIds.contains(property.getId())){
+                        filteredProperties.add(property);
+                    }
                 }
+                mAdapter = new PropertyAdapter(filteredProperties);
             }
-            mAdapter = new PropertyAdapter(filteredProperties);
+            mPropertyRecyclerView.setAdapter(mAdapter);
+            mPropertyListDirty = false;
         }
-        mPropertyRecyclerView.setAdapter(mAdapter);
         mSwipeContainer.setRefreshing(false);
     }
 
@@ -286,6 +296,7 @@ public class PropertyListFragment extends Fragment {
                 public void onChildAdded(DataSnapshot dataSnapshot, String s) {
                     Log.d(TAG, "onChildAdded:" + dataSnapshot.getKey());
                     propertyIds.add(dataSnapshot.getKey());
+                    mPropertyListDirty = true;
                 }
 
                 @Override
@@ -310,6 +321,7 @@ public class PropertyListFragment extends Fragment {
                     if(toRemove >= 0){
                         propertyIds.remove(toRemove);
                     }
+                    mPropertyListDirty = true;
                 }
 
                 @Override
@@ -329,6 +341,7 @@ public class PropertyListFragment extends Fragment {
                 @Override
                 public void onDataChange(DataSnapshot dataSnapshot) {
                     Log.d(TAG, "done loading initial data for university properties");
+                    mPropertyListDirty = true;
                     updateUI();
                 }
 
@@ -347,6 +360,7 @@ public class PropertyListFragment extends Fragment {
                 public void onChildAdded(DataSnapshot dataSnapshot, String s) {
                     Log.d(TAG, "onChildAdded:" + dataSnapshot.getKey());
                     propertyIds.add(dataSnapshot.getKey());
+                    mPropertyListDirty = true;
                 }
 
                 @Override
@@ -371,6 +385,7 @@ public class PropertyListFragment extends Fragment {
                     if(toRemove >= 0){
                         propertyIds.remove(toRemove);
                     }
+                    mPropertyListDirty = true;
                 }
 
                 @Override
@@ -390,6 +405,7 @@ public class PropertyListFragment extends Fragment {
                 @Override
                 public void onDataChange(DataSnapshot dataSnapshot) {
                     Log.d(TAG, "done loading initial data for user properties");
+                    mPropertyListDirty = true;
                     updateUI();
                 }
 
