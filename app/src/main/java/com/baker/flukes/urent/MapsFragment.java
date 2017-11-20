@@ -77,14 +77,15 @@ public class MapsFragment extends SupportMapFragment {
 
     private void getLocation() {
         LocationRequest request = LocationRequest.create();
-        request.setPriority(LocationRequest.PRIORITY_LOW_POWER);
+        request.setPriority(LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY);
         request.setNumUpdates(100);
-        request.setInterval(0);
+        request.setFastestInterval(60000);
+        request.setInterval(600000);
         LocationServices.FusedLocationApi
                 .requestLocationUpdates(mClient, request, new LocationListener() {
                     @Override
                     public void onLocationChanged(Location location) {
-                        Log.i(TAG, "Got a fix: " + location);
+                        Log.i(TAG, "Location updated: " + location);
                         mMap.setMyLocationEnabled(true);
                     }
                 });
