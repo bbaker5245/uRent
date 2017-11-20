@@ -77,7 +77,7 @@ public class MapsFragment extends SupportMapFragment {
 
     private void getLocation() {
         LocationRequest request = LocationRequest.create();
-        request.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
+        request.setPriority(LocationRequest.PRIORITY_LOW_POWER);
         request.setNumUpdates(100);
         request.setInterval(0);
         LocationServices.FusedLocationApi
